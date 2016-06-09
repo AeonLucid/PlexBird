@@ -1,15 +1,16 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PlexBird")]
-[assembly: AssemblyDescription("Marks anime watched on https://hummingbird.me/ based on PMS (Plex Media Server).")]
+[assembly: AssemblyTitle("PlexConnector")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PlexBird")]
-[assembly: AssemblyCopyright("Copyright © AeonLucid 2016")]
+[assembly: AssemblyProduct("PlexConnector")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -19,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("62116cd6-658b-46cc-acf9-6f9d41101804")]
+[assembly: Guid("4f43604e-061e-4727-ad28-d8dbf261d6d2")]
 
 // Version information for an assembly consists of the following four values:
 //
