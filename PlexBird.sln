@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlexBird", "PlexBird\PlexBi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlexConnector", "PlexConnector\PlexConnector.csproj", "{4F43604E-061E-4727-AD28-D8DBF261D6D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HBConnector", "HBConnector\HBConnector.csproj", "{8B7B1C6E-B525-488B-ABD6-B7E489A86485}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{4F43604E-061E-4727-AD28-D8DBF261D6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F43604E-061E-4727-AD28-D8DBF261D6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F43604E-061E-4727-AD28-D8DBF261D6D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B7B1C6E-B525-488B-ABD6-B7E489A86485}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B7B1C6E-B525-488B-ABD6-B7E489A86485}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B7B1C6E-B525-488B-ABD6-B7E489A86485}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B7B1C6E-B525-488B-ABD6-B7E489A86485}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

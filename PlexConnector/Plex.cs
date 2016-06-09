@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using PlexConnector.Net;
 using PlexConnector.Net.JsonObjects;
 
@@ -14,9 +13,6 @@ namespace PlexConnector
             _web = new Web(plexUrl);
 
             Information = _web.RequestData<PlexInformation>();
-
-            //File.WriteAllText("test.txt", Web.RequestRawData($"{_plexUrl}library/sections/2/recentlyViewed"));
-            //File.WriteAllText("test_2.txt", Web.RequestRawData($"{_plexUrl}library/sections"));
         }
 
         public PlexInformation Information { get; private set; }
@@ -31,9 +27,9 @@ namespace PlexConnector
             return _web.RequestData<PlexShows>($"library/sections/{key}/all").Shows;
         }
 
-        public List<PlexSeason> GetAllSeasons(string key)
+        public PlexShowData GetShowData(string key)
         {
-            return _web.RequestData<PlexSeasons>($"library/metadata/{key}/children").Seasons;
+            return _web.RequestData<PlexShowData>($"library/metadata/{key}/children");
         }
 
         public List<PlexEpisode> GetAllEpisodes(string key)

@@ -3,8 +3,11 @@ using Newtonsoft.Json;
 
 namespace PlexConnector.Net.JsonObjects
 {
-    public class PlexSeasons
+    public class PlexShowData
     {
+
+        [JsonProperty("key")]
+        public string Key { get; set; }
 
         [JsonProperty("_children")]
         public List<PlexSeason> Seasons { get; set; }
