@@ -102,7 +102,7 @@ namespace PlexBird
             HummingBird.SetAuthenticationToken(Configuration.AuthToken);
             User = HummingBird.GetUser(Configuration.Username);
 
-            Logger.Info($"Connected to HummingBird as the user {User.Name}, you spent {User.LifeSpentOnAnime} minutes watching anime.");
+            Logger.Info($"Connected to HummingBird as the user {User.Name}, you've spent {User.LifeSpentOnAnime} minutes watching anime.");
 
             // Check database
             var databasePath = Path.Combine(Environment.CurrentDirectory, "database.json");
@@ -154,118 +154,131 @@ namespace PlexBird
 
             while (true)
             {
-                // Iterate through all (anime) shows
-                foreach (var plexShow in plex.GetAllShows(plexLibrary.Key))
+                try
                 {
-                    var plexShowData = plex.GetShowData(plexShow.RatingKey);
-                    if (plexShowData.Seasons.Count != 1)
-                        throw new Exception($"The show '{plexLibrary.Title}' seems to have more than or less than one season.");
-
-                    var plexSeason = plexShowData.Seasons[0];
-                    var lastViewedEpisode = 0;
-
-                    // Iterate through all episodes of a show
-                    foreach (var plexEpisode in plex.GetAllEpisodes(plexSeason.RatingKey))
+                    // Iterate through all (anime) shows
+                    foreach (var plexShow in plex.GetAllShows(plexLibrary.Key))
                     {
-                        if (plexEpisode.ViewCount > 0 && plexEpisode.Index > lastViewedEpisode)
-                            lastViewedEpisode = plexEpisode.Index;
-                    }
+                        var plexShowData = plex.GetShowData(plexShow.RatingKey);
+                        if (plexShowData.Seasons.Count != 1)
+                            throw new Exception($"The show '{plexLibrary.Title}' seems to have more than or less than one season.");
 
-                    // Find the show on HummingBird
-                    if (!Database.ContainsKey(plexShowData.Key))
-                    {
-                        var animeShows = HummingBird.SearchAnime(plexShow.Title);
-                        HBAnime animeShow = null;
+                        var plexSeason = plexShowData.Seasons[0];
+                        var lastViewedEpisode = 0;
 
-                        // If there is just one result, it MUST be the anime we're looking for.
-                        if (animeShows.Count == 1)
+                        // Iterate through all episodes of a show
+                        foreach (var plexEpisode in plex.GetAllEpisodes(plexSeason.RatingKey))
                         {
-                            animeShow = animeShows[0];
+                            if (plexEpisode.ViewCount > 0 && plexEpisode.Index > lastViewedEpisode)
+                                lastViewedEpisode = plexEpisode.Index;
                         }
 
-                        if (animeShows.Count > 1)
+                        // Find the show on HummingBird
+                        if (!Database.ContainsKey(plexShowData.Key))
                         {
-                            foreach (var hbAnime in animeShows)
+                            var animeShows = HummingBird.SearchAnime(plexShow.Title);
+                            HBAnime animeShow = null;
+
+                            // If there is just one result, it MUST be the anime we're looking for.
+                            if (animeShows.Count == 1)
                             {
-                                if (hbAnime.Title.Equals(plexShow.Title)) // Check if title equals local title
-                                {
-                                    animeShow = hbAnime;
-                                    break;
-                                }
-
-                                if (hbAnime.TitleAlternate != null && hbAnime.TitleAlternate.Equals(plexShow.Title)) // Check if alternate title equals local title
-                                {
-                                    animeShow = hbAnime;
-                                    break;
-                                }
-
-                                // Maybe missing a random character? (e.g. https://hummingbird.me/anime/isshuukan-friends)
-
-                                if (hbAnime.Title.Contains(plexShow.Title) &&
-                                    hbAnime.Title.Replace(plexShow.Title, string.Empty).Length <= 1)
-                                {
-                                    animeShow = hbAnime;
-                                    break;
-                                }
-
-                                if (hbAnime.TitleAlternate != null &&
-                                    hbAnime.TitleAlternate.Contains(plexShow.Title) &&
-                                    hbAnime.TitleAlternate.Replace(plexShow.Title, string.Empty).Length <= 1)
-                                {
-                                    animeShow = hbAnime;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // Add to the database
-                        if (animeShow != null)
-                        {
-                            if (Database.ContainsKey(plexShowData.Key)) continue;
-
-                            Database.Add(plexShowData.Key, new DatabaseEntry
-                            {
-                                EpisodesWatched = lastViewedEpisode,
-                                LastUpdateEpisodesWatched = 0,
-                                Anime = animeShow
-                            });
-                        }
-                        else
-                        {
-                            Logger.Info($"Couldn't find the show '{StringUtil.RemoveNonASCII(plexShow.Title)}' on HummingBird.");
-                        }
-                    }
-
-                    // Update!
-                    var databaseEntry = Database[plexShowData.Key];
-                    if (databaseEntry.EpisodesWatched != databaseEntry.Anime.EpisodeCount) // Not yet completed
-                    {
-                        if (lastViewedEpisode > databaseEntry.EpisodesWatched)
-                            databaseEntry.EpisodesWatched = lastViewedEpisode;
-
-                        if (databaseEntry.EpisodesWatched != databaseEntry.LastUpdateEpisodesWatched)
-                        {
-                            var episodesWatched = databaseEntry.EpisodesWatched;
-
-                            // Apply manual fixes
-                            if (databaseEntry.Anime.Title.Equals("Gakusen Toshi Asterisk 2nd Season"))
-                            {
-                                episodesWatched = episodesWatched - 12;
+                                animeShow = animeShows[0];
                             }
 
-                            var libraryItem = HummingBird.UpdateLibrary(databaseEntry.Anime, episodesWatched);
-
-                            if (libraryItem != null)
+                            if (animeShows.Count > 1)
                             {
-                                Database[plexShowData.Key].LastUpdateEpisodesWatched = databaseEntry.EpisodesWatched;
-                                Logger.Info($"Synchronized '{StringUtil.RemoveNonASCII(plexShow.Title)}'.");
+                                foreach (var hbAnime in animeShows)
+                                {
+                                    if (hbAnime.Title.ToLower().Equals(plexShow.Title.ToLower())) // Check if title equals local title
+                                    {
+                                        animeShow = hbAnime;
+                                        break;
+                                    }
+
+                                    if (hbAnime.TitleAlternate != null && hbAnime.TitleAlternate.ToLower().Equals(plexShow.Title.ToLower())) // Check if alternate title equals local title
+                                    {
+                                        animeShow = hbAnime;
+                                        break;
+                                    }
+
+                                    // Maybe missing a random character? (e.g. https://hummingbird.me/anime/isshuukan-friends)
+
+                                    if (hbAnime.Title.Contains(plexShow.Title) &&
+                                        hbAnime.Title.Replace(plexShow.Title, string.Empty).Length <= 1)
+                                    {
+                                        animeShow = hbAnime;
+                                        break;
+                                    }
+
+                                    if (hbAnime.TitleAlternate != null &&
+                                        hbAnime.TitleAlternate.Contains(plexShow.Title) &&
+                                        hbAnime.TitleAlternate.Replace(plexShow.Title, string.Empty).Length <= 1)
+                                    {
+                                        animeShow = hbAnime;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // Add to the database
+                            if (animeShow != null)
+                            {
+                                if (Database.ContainsKey(plexShowData.Key)) continue;
+
+                                Database.Add(plexShowData.Key, new DatabaseEntry
+                                {
+                                    EpisodesWatched = lastViewedEpisode,
+                                    LastUpdateEpisodesWatched = 0,
+                                    Anime = animeShow
+                                });
                             }
                             else
-                                Logger.Info($"Something went wrong with '{StringUtil.RemoveNonASCII(plexShow.Title)}'.");
+                            {
+                                Logger.Info($"Couldn't find the show '{StringUtil.RemoveNonASCII(plexShow.Title)}' on HummingBird.");
+                            }
+                        }
+
+                        // Update!
+                        if (Database.ContainsKey(plexShowData.Key))
+                        {
+                            var databaseEntry = Database[plexShowData.Key];
+                            if (databaseEntry.EpisodesWatched != databaseEntry.Anime.EpisodeCount) // Not yet completed
+                            {
+                                if (lastViewedEpisode > databaseEntry.EpisodesWatched)
+                                    databaseEntry.EpisodesWatched = lastViewedEpisode;
+
+                                if (databaseEntry.EpisodesWatched != databaseEntry.LastUpdateEpisodesWatched)
+                                {
+                                    var episodesWatched = databaseEntry.EpisodesWatched;
+
+                                    // Apply manual fixes
+                                    if (databaseEntry.Anime.Title.Equals("Gakusen Toshi Asterisk 2nd Season"))
+                                    {
+                                        episodesWatched = episodesWatched - 12;
+                                    }
+
+                                    var libraryItem = HummingBird.UpdateLibrary(databaseEntry.Anime, episodesWatched);
+
+                                    if (libraryItem != null)
+                                    {
+                                        Database[plexShowData.Key].LastUpdateEpisodesWatched = databaseEntry.EpisodesWatched;
+                                        Logger.Info($"Synchronized '{StringUtil.RemoveNonASCII(plexShow.Title)}'.");
+                                    }
+                                    else
+                                        Logger.Info($"Something went wrong with '{StringUtil.RemoveNonASCII(plexShow.Title)}'.");
+                                }
+                            }
+
+                            SaveDatabase();
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn("Something went wrong in the sync thread, trying again in 5 minutes.", ex);
 
-                    SaveDatabase();
+                    Thread.Sleep(1000 * 60 * 5);
+                    continue;
                 }
 
                 // Sleepwell for 1 minute.
